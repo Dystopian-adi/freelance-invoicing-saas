@@ -5,3 +5,6 @@ src/storage/*.key
 .env
 *.log
 .DS_Store
+**/.DS_Store
+cookies.txt
+src/cookies.txt
