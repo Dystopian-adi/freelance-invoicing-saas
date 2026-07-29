@@ -1,0 +1,93 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: saas_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+    networks:
+      - saas_network
+    depends_on:
+      - db
+      - redis
+
+  webserver:
+    image: nginx:1.27-alpine
+    container_name: saas_webserver
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - saas_network
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: saas_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-saas_app}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-saas_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "3306:3306"
+    volumes:
+      - saas_db_data:/var/lib/mysql
+    networks:
+      - saas_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: saas_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - saas_network
+
+  # Runs the separate React (Vite) SPA that consumes the Laravel API
+  node:
+    image: node:20-alpine
+    container_name: saas_node
+    working_dir: /var/www/client
+    volumes:
+      - ./src/client:/var/www/client
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install --legacy-peer-deps && npm run dev -- --host"
+    networks:
+      - saas_network
+    depends_on:
+      - app
+
+  # Optional: phpMyAdmin for quick DB inspection during development
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: saas_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    ports:
+      - "8081:80"
+    networks:
+      - saas_network
+    depends_on:
+      - db
+
+networks:
+  saas_network:
+    driver: bridge
+
+volumes:
+  saas_db_data:
+    driver: local
