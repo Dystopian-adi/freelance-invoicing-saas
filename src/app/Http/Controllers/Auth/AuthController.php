@@ -9,6 +9,27 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = \App\Models\User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+        ]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return response()->json(['user' => $user], 201);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
