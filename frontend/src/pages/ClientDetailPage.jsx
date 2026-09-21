@@ -31,7 +31,10 @@ export default function ClientDetailPage() {
       ) : (
         <ul>
           {client.projects.map((project) => (
-            <li key={project.id}>{project.name} — {project.status}</li>
+            <li key={project.id}>
+              <Link to={`/projects/${project.id}`}>{project.name}</Link> —{" "}
+              {project.status}
+            </li>
           ))}
         </ul>
       )}
