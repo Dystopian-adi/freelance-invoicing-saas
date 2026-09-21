@@ -1,10 +1,12 @@
-src/vendor/
-src/node_modules/
-src/.env
-src/storage/*.key
+api/vendor/
+api/node_modules/
+api/.env
+api/storage/*.key
+frontend/node_modules/
+frontend/dist/
 .env
 *.log
 .DS_Store
 **/.DS_Store
 cookies.txt
-src/cookies.txt
+api/cookies.txt
