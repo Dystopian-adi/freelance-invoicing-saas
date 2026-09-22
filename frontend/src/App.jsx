@@ -7,6 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ClientsPage from "./pages/ClientsPage";
 import ClientDetailPage from "./pages/ClientDetailPage";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
+import InvoiceDetailPage from "./pages/InvoiceDetailPage"; 
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/clients" element={<ClientsPage />} />
         <Route path="/clients/:id" element={<ClientDetailPage />} />
         <Route path="/projects/:id" element={<ProjectDetailPage />} />
+        <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
