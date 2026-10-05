@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { getInvoice } from "../lib/invoices";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { getInvoice, updateInvoice, deleteInvoice } from "../lib/invoices";
 import { createLineItem, deleteLineItem } from "../lib/lineItems";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,11 +14,39 @@ export default function InvoiceDetailPage() {
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
 
+  const [status, setStatus] = useState("draft");
+
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchInvoice = async () => {
+      setLoading(true);
+      try {
+        const data = await getInvoice(id);
+        if (ignore) return;
+
+        setInvoice(data);
+        setStatus(data.status);
+      } catch {
+        if (!ignore) setError("Invoice not found");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    fetchInvoice();
+
+    return () => {
+      ignore = true;
+    };
+  }, [id]);
+
   async function loadInvoice() {
     setLoading(true);
     try {
       const data = await getInvoice(id);
       setInvoice(data);
+      setStatus(data.status);
     } catch {
       setError("Invoice not found");
     } finally {
@@ -25,33 +54,22 @@ export default function InvoiceDetailPage() {
     }
   }
 
-  useEffect(() => {
-    let isActive = true;
-
-    async function fetchInvoice() {
-      setLoading(true);
-      try {
-        const data = await getInvoice(id);
-        if (isActive) {
-          setInvoice(data);
-        }
-      } catch {
-        if (isActive) {
-          setError("Invoice not found");
-        }
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
+  async function handleStatusChange(e) {
+    const newStatus = e.target.value;
+    setStatus(newStatus);
+    try {
+      await updateInvoice(id, { status: newStatus });
+      loadInvoice();
+    } catch {
+      setError("Failed to update status");
     }
+  }
 
-    void fetchInvoice();
-
-    return () => {
-      isActive = false;
-    };
-  }, [id]);
+  async function handleDelete() {
+    if (!confirm("Delete this invoice and all its line items?")) return;
+    await deleteInvoice(id);
+    navigate(`/projects/${invoice.project_id}`);
+  }
 
   async function handleAddLineItem(e) {
     e.preventDefault();
@@ -65,7 +83,7 @@ export default function InvoiceDetailPage() {
       setDescription("");
       setQuantity("1");
       setUnitPrice("");
-      loadInvoice(); // refresh — this pulls the recalculated total from the backend
+      loadInvoice();
     } catch (err) {
       const errors = err.response?.data?.errors;
       setError(
@@ -88,10 +106,23 @@ export default function InvoiceDetailPage() {
     <div>
       <Link to={`/projects/${invoice.project_id}`}>&larr; Back to project</Link>
       <h1>{invoice.invoice_number}</h1>
-      <p>Status: {invoice.status}</p>
+
+      <label>
+        Status:{" "}
+        <select value={status} onChange={handleStatusChange}>
+          <option value="draft">Draft</option>
+          <option value="sent">Sent</option>
+          <option value="paid">Paid</option>
+          <option value="overdue">Overdue</option>
+        </select>
+      </label>
+      <button onClick={handleDelete}>Delete invoice</button>
+
       <p>Issue date: {invoice.issue_date?.slice(0, 10)}</p>
       <p>Due date: {invoice.due_date?.slice(0, 10)}</p>
       <h2>Total: ${invoice.total}</h2>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <h3>Line Items</h3>
       <table>
@@ -145,7 +176,6 @@ export default function InvoiceDetailPage() {
           required
         />
         <button type="submit">Add line item</button>
-        {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
     </div>
   );
