@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Trash2, Plus } from "lucide-react";
-import { getInvoice, updateInvoice, deleteInvoice } from "../lib/invoices";
+import {
+  getInvoice,
+  updateInvoice,
+  deleteInvoice,
+  getPaymentLink,
+} from "../lib/invoices";
 import { createLineItem, deleteLineItem } from "../lib/lineItems";
 import StatusBadge from "../components/StatusBadge";
 
@@ -47,6 +52,17 @@ export default function InvoiceDetailPage() {
     } catch {
       setError("Failed to update status");
     }
+  }
+
+  async function handleCopyLink() {
+    const backendUrl = await getPaymentLink(id);
+    // Convert the backend link into a frontend link the client can actually open
+    const url = new URL(backendUrl);
+    const frontendUrl = `http://localhost:5173/pay/${id}?signature=${url.searchParams.get(
+      "signature",
+    )}`;
+    navigator.clipboard.writeText(frontendUrl);
+    alert("Payment link copied to clipboard");
   }
 
   async function handleDelete() {
@@ -120,6 +136,12 @@ export default function InvoiceDetailPage() {
             <option value="paid">Paid</option>
             <option value="overdue">Overdue</option>
           </select>
+          <button
+            onClick={handleCopyLink}
+            className="rounded-md bg-teal px-3 py-2 text-sm font-medium text-white hover:bg-teal-light"
+          >
+            Copy payment link
+          </button>
           <button
             onClick={handleDelete}
             className="rounded-md p-2 text-navy/50 hover:bg-cream hover:text-status-overdue"

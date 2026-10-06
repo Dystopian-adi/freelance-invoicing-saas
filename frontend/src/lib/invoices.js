@@ -21,3 +21,8 @@ export async function updateInvoice(id, payload) {
 export async function deleteInvoice(id) {
   await api.delete(`/api/invoices/${id}`);
 }
+
+export async function getPaymentLink(id) {
+  const { data } = await api.get(`/api/invoices/${id}/payment-link`);
+  return data.url;
+}

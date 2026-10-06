@@ -15,7 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
 
-        //
+        $middleware->validateCsrfTokens(except: [
+            'api/invoices/*/pay/order',
+            'api/invoices/*/pay/verify',
+            'api/webhooks/razorpay',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
