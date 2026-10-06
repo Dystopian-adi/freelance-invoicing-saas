@@ -17,6 +17,7 @@ class InvoiceResource extends JsonResource
             'issue_date' => $this->issue_date,
             'due_date' => $this->due_date,
             'total' => $this->total,
+            'paid_at' => $this->paid_at,
             'line_items' => LineItemResource::collection($this->whenLoaded('lineItems')),
             'created_at' => $this->created_at,
         ];

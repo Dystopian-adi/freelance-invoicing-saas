@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Models\Project;
+use Illuminate\Support\Facades\URL;
 
 class InvoiceController extends Controller
 {
@@ -46,5 +47,18 @@ class InvoiceController extends Controller
         $invoice->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Generate a signed, no-login-required URL the freelancer can send
+     * their client so they can view and pay this invoice.
+     */
+    public function paymentLink(Invoice $invoice)
+    {
+        $this->authorize('view', $invoice);
+
+        $url = URL::signedRoute('invoices.pay.show', ['invoice' => $invoice->id]);
+
+        return response()->json(['url' => $url]);
     }
 }

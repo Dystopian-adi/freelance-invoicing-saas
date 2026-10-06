@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Invoice extends Model
 {
@@ -18,6 +18,9 @@ class Invoice extends Model
         'issue_date',
         'due_date',
         'total',
+        'razorpay_order_id',
+        'razorpay_payment_id',
+        'paid_at',
     ];
 
     protected function casts(): array
@@ -26,6 +29,7 @@ class Invoice extends Model
             'issue_date' => 'date',
             'due_date' => 'date',
             'total' => 'decimal:2',
+            'paid_at' => 'datetime',
         ];
     }
 
