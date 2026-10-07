@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
+use App\Mail\InvoiceSentMail;
 use App\Models\Invoice;
 use App\Models\Project;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
 class InvoiceController extends Controller
@@ -35,7 +37,14 @@ class InvoiceController extends Controller
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
     {
+        $wasAlreadySent = $invoice->status === 'sent';
+
         $invoice->update($request->validated());
+
+        if ($invoice->status === 'sent' && ! $wasAlreadySent) {
+            $invoice->load('project.client');
+            Mail::to($invoice->project->client->email)->queue(new InvoiceSentMail($invoice));
+        }
 
         return new InvoiceResource($invoice);
     }
@@ -49,10 +58,6 @@ class InvoiceController extends Controller
         return response()->noContent();
     }
 
-    /**
-     * Generate a signed, no-login-required URL the freelancer can send
-     * their client so they can view and pay this invoice.
-     */
     public function paymentLink(Invoice $invoice)
     {
         $this->authorize('view', $invoice);

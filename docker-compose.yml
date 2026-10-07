@@ -84,6 +84,34 @@ services:
       - app
       - db
     command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
+
+  # Optional: Mailpit for catching outgoing emails during development
+  mailpit:
+    image: axllent/mailpit
+    container_name: saas_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - saas_network
+
+  # Optional: Queue worker for processing queued jobs in the background
+  queue-worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: saas_queue_worker
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./api:/var/www
+    networks:
+      - saas_network
+    depends_on:
+      - app
+      - redis
+    command: sh -c "php artisan queue:work --tries=3"
   
   # Optional: phpMyAdmin for quick DB inspection during development
   phpmyadmin:
