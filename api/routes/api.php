@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\RazorpayWebhookController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Api\InvoicePdfController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->parameters(['line-items' => 'line_item']);
 
     Route::get('/invoices/{invoice}/payment-link', [InvoiceController::class, 'paymentLink']);
+    Route::get('/invoices/{invoice}/pdf', [InvoicePdfController::class, 'download']);
 });
 
 // Public payment flow — the entry point is signature-protected (see note above),

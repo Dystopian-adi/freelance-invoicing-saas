@@ -161,7 +161,17 @@ export default function InvoiceDetailPage() {
 
       {error && <p className="mt-3 text-sm text-status-overdue">{error}</p>}
 
-      <h2 className="mt-8 text-lg font-semibold text-navy">Line items</h2>
+      <div className="mt-8 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-navy">Line items</h2>
+        <a
+          href={`http://localhost:8080/api/invoices/${id}/pdf`}
+          target="_blank"
+          rel="noopener"
+          className="rounded-md bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy-light"
+        >
+          Download PDF
+        </a>
+      </div>
       <div className="mt-3 overflow-hidden rounded-lg border border-seafoam/40 bg-white">
         <table className="w-full text-sm">
           <thead>
