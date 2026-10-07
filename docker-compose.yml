@@ -68,6 +68,23 @@ services:
     depends_on:
       - app
 
+  # Runs Laravel's scheduler every minute — the Docker equivalent of a system cron entry
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: saas_scheduler
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./api:/var/www
+    networks:
+      - saas_network
+    depends_on:
+      - app
+      - db
+    command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
+  
   # Optional: phpMyAdmin for quick DB inspection during development
   phpmyadmin:
     image: phpmyadmin:latest
